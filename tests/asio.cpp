@@ -73,7 +73,7 @@ void test_cancelation(auto coro) {
 #ifdef _WIN32
             REQUIRE(ec == error_code(995, asio::system_category()));
 #else
-            REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category());
+            REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category()));
 #endif
         } catch (...) {
             REQUIRE(false);
@@ -129,7 +129,7 @@ TEST_CASE("asio.transform_system_error.promise_can_be_canceled") {
 #ifdef _WIN32
         REQUIRE(ec == error_code(995, asio::system_category()));
 #else
-        REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category());
+        REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category()));
 #endif
     });
     ioc.run();
