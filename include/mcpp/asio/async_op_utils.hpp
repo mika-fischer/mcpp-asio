@@ -23,7 +23,7 @@ namespace mcpp::asio::detail {
 
 template <typename T>
 concept wrapped_handler_impl = requires(const T &impl) {
-    T::inner_handler_type;
+    typename T::inner_handler_type;
     {impl.inner_handler()};
 };
 
