@@ -70,8 +70,11 @@ void test_cancelation(auto coro) {
         } catch (std::exception &e) {
             REQUIRE(typeid(e) == typeid(std::system_error));
             auto ec = dynamic_cast<std::system_error &>(e).code();
+#ifdef _WIN32
             REQUIRE(ec == error_code(995, asio::system_category()));
-            // REQUIRE(ec == std::errc::operation_canceled);
+#else
+            REQUIRE(ec == std::errc::operation_canceled);
+#endif
         } catch (...) {
             REQUIRE(false);
         }
@@ -123,8 +126,11 @@ TEST_CASE("asio.transform_system_error.promise_can_be_canceled") {
     timer.async_wait([&](auto /*ec*/) { promise.cancel(); });
     promise.async_wait([&](error_code ec, int i) {
         REQUIRE(ec != std::errc::timed_out);
+#ifdef _WIN32
         REQUIRE(ec == error_code(995, asio::system_category()));
-        // REQUIRE(ec == std::errc::operation_canceled);
+#else
+        REQUIRE(ec == std::errc::operation_canceled);
+#endif
     });
     ioc.run();
 }
