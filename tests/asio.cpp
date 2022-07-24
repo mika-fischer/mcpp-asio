@@ -2,6 +2,7 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
+#include "asio/error.hpp"
 #if defined(__clang__) && !defined(ASIO_HAS_CO_AWAIT)
 #define ASIO_HAS_CO_AWAIT 1
 #endif
@@ -70,11 +71,7 @@ void test_cancelation(auto coro) {
         } catch (std::exception &e) {
             REQUIRE(typeid(e) == typeid(std::system_error));
             auto ec = dynamic_cast<std::system_error &>(e).code();
-#ifdef _WIN32
-            REQUIRE(ec == error_code(995, asio::system_category()));
-#else
-            REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category()));
-#endif
+            REQUIRE(ec == error::operation_aborted);
         } catch (...) {
             REQUIRE(false);
         }
@@ -126,11 +123,7 @@ TEST_CASE("asio.transform_system_error.promise_can_be_canceled") {
     timer.async_wait([&](auto /*ec*/) { promise.cancel(); });
     promise.async_wait([&](error_code ec, int i) {
         REQUIRE(ec != std::errc::timed_out);
-#ifdef _WIN32
-        REQUIRE(ec == error_code(995, asio::system_category()));
-#else
-        REQUIRE(ec == error_code(std::errc::operation_canceled, asio::system_category()));
-#endif
+        REQUIRE(ec == error::operation_aborted);
     });
     ioc.run();
 }
