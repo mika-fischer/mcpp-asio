@@ -12,8 +12,8 @@ jobs:
       matrix:
         version:
           - "22.04"
-          - "20.04"
-          - "18.04"
+          # - "20.04"
+          # - "18.04"
     runs-on: ubuntu-${{ matrix.version }}
     steps:
       - name: Checkout
