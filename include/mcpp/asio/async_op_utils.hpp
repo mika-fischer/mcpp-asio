@@ -126,10 +126,10 @@ struct async_result<mcpp::asio::detail::wrapped_token<Impl, CT>, Ss...>
     template <typename I, typename... Ts>
     static auto initiate(I &&init, auto &&token, Ts &&...args) {
         return base::initiate(
-            [init = std::forward<I>(init)]<class H, class... Us>(H &&handler, Us &&...args) mutable {
+            [init = std::forward<I>(init)]<class H, class... Us>(H &&handler, Us &&...args2) mutable {
                 using handler_impl = typename Impl::template handler_impl<std::decay_t<H>>;
                 using wrapped_handler = mcpp::asio::detail::wrapped_handler<handler_impl>;
-                return std::move(init)(wrapped_handler(std::forward<H>(handler)), std::forward<Us>(args)...);
+                return std::move(init)(wrapped_handler(std::forward<H>(handler)), std::forward<Us>(args2)...);
             },
             token.inner_token_, std::forward<Ts>(args)...);
     }
