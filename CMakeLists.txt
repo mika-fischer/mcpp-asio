@@ -9,7 +9,6 @@ else ()
 endif ()
 
 option(${PROJECT_NAME}_WITH_TESTS   "Build tests"         ${is_toplevel})
-option(${PROJECT_NAME}_WITH_INSTALL "Install project"     ${is_toplevel})
 option(${PROJECT_NAME}_WITH_BOOST   "Use asio from boost" OFF)
 
 add_library(${PROJECT_NAME} INTERFACE)
@@ -24,12 +23,6 @@ else ()
     target_compile_definitions(${PROJECT_NAME} INTERFACE MCPP_ASIO_USE_BOOST=0)
 endif ()
 add_library(${PROJECT_ALIAS} ALIAS ${PROJECT_NAME})
-
-if (${PROJECT_NAME}_WITH_INSTALL)
-    install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}-config)
-    install(EXPORT ${PROJECT_NAME}-config DESTINATION share/cmake/${PROJECT_NAME})
-    install(DIRECTORY include DESTINATION ".")
-endif ()
 
 if (${PROJECT_NAME}_WITH_TESTS)
     include(CTest)
