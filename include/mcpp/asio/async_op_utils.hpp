@@ -72,8 +72,10 @@ struct transparent_handler : wrapped_handler_impl_base<Handler> {
 
 template <typename T>
 concept wrapped_token_impl = requires(const T &impl) {
-    {[]<typename Handler>(typename T::template handler_impl<Handler> &) {}};
-    {[]<typename Signature>(typename T::template transform_signature<Signature> &) {}};
+    std::is_object_v<T>;
+    // TODO: ICE on GCC 12. Need to find a better way to check this...
+    // {[]<typename Handler>(typename T::template handler_impl<Handler> &) {}};
+    // {[]<typename Signature>(typename T::template transform_signature<Signature> &) {}};
 };
 
 struct wrapped_token_impl_base {
