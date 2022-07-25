@@ -32,7 +32,18 @@ requires(!std::is_reference_v<Handler>) struct wrapped_handler_impl_base {
     using inner_handler_type = Handler;
     auto inner_handler() const & -> const inner_handler_type & { return inner_handler_; }
 
+    template <typename... Args>
+    auto operator()(Args &&...args) && {
+        return std::move(*this).complete(std::forward<Args>(args)...);
+    }
+
   protected:
+    template <typename TokenImpl>
+    explicit wrapped_handler_impl_base(inner_handler_type &&inner_handler, TokenImpl && /* ignored */)
+        : inner_handler_(std::move(inner_handler)) {}
+    template <typename TokenImpl>
+    explicit wrapped_handler_impl_base(const inner_handler_type &inner_handler, TokenImpl && /* ignored */)
+        : inner_handler_(inner_handler) {}
     explicit wrapped_handler_impl_base(inner_handler_type &&inner_handler) : inner_handler_(std::move(inner_handler)) {}
     explicit wrapped_handler_impl_base(const inner_handler_type &inner_handler) : inner_handler_(inner_handler) {}
 
@@ -51,8 +62,12 @@ requires(!std::is_reference_v<Handler>) struct wrapped_handler_impl_base {
 template <wrapped_handler_impl Implementation>
 struct wrapped_handler : Implementation {
     using inner_handler_type = typename Implementation::inner_handler_type;
-    explicit wrapped_handler(inner_handler_type &&handler) : Implementation(std::move(handler)) {}
-    explicit wrapped_handler(const inner_handler_type &handler) : Implementation(handler) {}
+    template <typename TokenImpl>
+    explicit wrapped_handler(inner_handler_type &&handler, TokenImpl &&token_impl)
+        : Implementation(std::move(handler), std::forward<TokenImpl>(token_impl)) {}
+    template <typename TokenImpl>
+    explicit wrapped_handler(const inner_handler_type &handler, TokenImpl &&token_impl)
+        : Implementation(handler, std::forward<TokenImpl>(token_impl)) {}
 };
 
 template <wrapped_handler_impl Implementation>
@@ -63,11 +78,6 @@ inline auto asio_handler_is_continuation(wrapped_handler<Implementation> *this_h
 template <typename Handler>
 struct transparent_handler : wrapped_handler_impl_base<Handler> {
     using wrapped_handler_impl_base<Handler>::wrapped_handler_impl_base;
-
-    template <typename... Args>
-    auto operator()(Args &&...args) && {
-        return std::move(*this).complete(std::forward<Args>(args)...);
-    }
 };
 
 struct invocable_archetype {
@@ -92,11 +102,16 @@ struct wrapped_token_impl_base {
 static_assert(wrapped_token_impl<wrapped_token_impl_base>);
 
 template <wrapped_token_impl Impl, typename CompletionToken>
-requires(!std::is_reference_v<CompletionToken>) struct wrapped_token {
+requires(!std::is_reference_v<CompletionToken>) struct wrapped_token : Impl {
+    using impl_type = Impl;
     CompletionToken inner_token_;
 
-    explicit wrapped_token(CompletionToken &&token) : inner_token_(std::move(token)) {}
-    explicit wrapped_token(const CompletionToken &token) : inner_token_(token) {}
+    template <typename... Args>
+    explicit wrapped_token(CompletionToken &&token, Args &&...args)
+        : Impl(std::forward<Args>(args)...), inner_token_(std::move(token)) {}
+    template <typename... Args>
+    explicit wrapped_token(const CompletionToken &token, Args &&...args)
+        : Impl(std::forward<Args>(args)...), inner_token_(token) {}
 
     template <typename Executor>
     struct executor_with_default : Executor {
@@ -132,13 +147,17 @@ struct async_result<mcpp::asio::detail::wrapped_token<Impl, CT>, Ss...>
     using base = async_result<CT, typename Impl::template transform_signature<Ss>...>;
     template <typename I, typename... Ts>
     static auto initiate(I &&init, auto &&token, Ts &&...args) {
+        auto inner_token = std::move(token.inner_token_);
+        auto &token_impl = static_cast<typename std::decay_t<decltype(token)>::impl_type &>(token);
         return base::initiate(
-            [init = std::forward<I>(init)]<class H, class... Us>(H &&handler, Us &&...args2) mutable {
+            [init = std::forward<I>(init),
+             token_impl = std::move(token_impl)]<class H, class... Us>(H &&handler, Us &&...args2) mutable {
                 using handler_impl = typename Impl::template handler_impl<std::decay_t<H>>;
                 using wrapped_handler = mcpp::asio::detail::wrapped_handler<handler_impl>;
-                return std::move(init)(wrapped_handler(std::forward<H>(handler)), std::forward<Us>(args2)...);
+                return std::move(init)(wrapped_handler(std::forward<H>(handler), std::move(token_impl)),
+                                       std::forward<Us>(args2)...);
             },
-            std::move(token.inner_token_), std::forward<Ts>(args)...);
+            std::move(inner_token), std::forward<Ts>(args)...);
     }
 };
 

@@ -9,6 +9,7 @@
 #define MCPP_ASIO_USE_BOOST 0
 #include <mcpp/asio/config.hpp>
 #include <mcpp/asio/transform_system_error.hpp>
+#include <mcpp/asio/with_work_guard.hpp>
 
 #include <asio/awaitable.hpp>
 #include <asio/co_spawn.hpp>
@@ -128,6 +129,20 @@ TEST_CASE("asio.transform_system_error.promise_can_be_canceled") {
     auto ioc = io_context();
     auto promise = co_spawn(ioc, throw_system_error_after(std::chrono::seconds(10)),
                             transform_system_error(experimental::use_promise));
+    auto timer = steady_timer(ioc);
+    timer.expires_after(std::chrono::milliseconds(10));
+    timer.async_wait([&](auto /*ec*/) { promise.cancel(); });
+    promise.async_wait([&](error_code ec, int i) {
+        REQUIRE(ec != std::errc::timed_out);
+        REQUIRE(ec == error::operation_aborted);
+    });
+    ioc.run();
+}
+
+TEST_CASE("asio.transform_system_error_with_work_guard.promise_can_be_canceled") {
+    auto ioc = io_context();
+    auto promise = co_spawn(ioc, throw_system_error_after(std::chrono::seconds(10)),
+                            with_work_guard(transform_system_error(experimental::use_promise), ioc.get_executor()));
     auto timer = steady_timer(ioc);
     timer.expires_after(std::chrono::milliseconds(10));
     timer.async_wait([&](auto /*ec*/) { promise.cancel(); });

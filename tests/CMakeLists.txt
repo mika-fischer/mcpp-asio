@@ -15,6 +15,7 @@ add_executable(test-asio
     async_op_utils.cpp
     transform_noexcept.cpp
     transform_system_error.cpp
+    with_work_guard.cpp
 )
 target_link_libraries(test-asio PRIVATE mcpp::asio doctest_with_main)
 target_include_directories(test-asio PUBLIC ${asio_SOURCE_DIR}/asio/include)
