@@ -21,11 +21,9 @@
 namespace mcpp::asio {
 #if MCPP_ASIO_USE_BOOST
 using error_code = boost::system::error_code;
-using error_category = boost::system::error_category;
 using system_error = boost::system::system_error;
 #else
 using error_code = std::error_code;
-using error_category = std::error_category;
 using system_error = std::system_error;
 #endif
 } // namespace mcpp::asio
