@@ -24,7 +24,7 @@ namespace mcpp::asio::detail {
 template <typename T>
 concept wrapped_handler_impl = requires(const T &impl) {
     typename T::inner_handler_type;
-    {impl.inner_handler()};
+    { impl.inner_handler() } -> std::same_as<const typename T::inner_handler_type &>;
 };
 
 template <typename Handler>
@@ -70,11 +70,16 @@ struct transparent_handler : wrapped_handler_impl_base<Handler> {
     }
 };
 
+struct invocable_archetype {
+    template <typename... Args>
+    void operator()(Args &&...args) {}
+};
+
 template <typename T>
 concept wrapped_token_impl = requires(const T &impl) {
-    std::is_object_v<T>;
+    wrapped_handler_impl<typename T::template handler_impl<invocable_archetype>>;
+    typename T::template transform_signature<void()>;
     // TODO: ICE on GCC 12. Need to find a better way to check this...
-    // {[]<typename Handler>(typename T::template handler_impl<Handler> &) {}};
     // {[]<typename Signature>(typename T::template transform_signature<Signature> &) {}};
 };
 
@@ -82,7 +87,7 @@ struct wrapped_token_impl_base {
     template <typename Handler>
     using handler_impl = transparent_handler<Handler>;
     template <typename Signature>
-    using transform_signature = std::type_identity_t<Signature>;
+    using transform_signature = Signature;
 };
 static_assert(wrapped_token_impl<wrapped_token_impl_base>);
 
