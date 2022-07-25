@@ -1,14 +1,13 @@
-// Copyright (C) mcpp::asio Intelligente Videoanalyse GmbH - All rights reserved.
-// Unauthorized copying of this file, via any medium is strictly prohibited.
-// Proprietary and confidential.
+// Copyright Mika Fischer 2022.
+// Distributed under the Boost Software License, Version 1.0.
+// (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
 
-#include <utils/asio/transform_noexcept.hpp>
+#include <mcpp/asio/async_op_utils.hpp>
 
 #include <exception>
 #include <type_traits>
-#include <utils/asio/async_op_utils.hpp>
 
 namespace mcpp::asio::detail {
 
@@ -24,10 +23,10 @@ struct transform_noexcept_signature;
     struct transform_noexcept_signature<R(Args...) ref_qualifier noexcept_qualifier> {                                 \
         using type = R(Args...) ref_qualifier noexcept_qualifier;                                                      \
     };
-mcpp::asio_FOREACH_SIGNATURE_QUALIFIER(X)
+MCPP_ASIO_FOREACH_SIGNATURE_QUALIFIER(X)
 #undef X
 
-    struct transform_noexcept_impl {
+struct transform_noexcept_impl {
     template <typename Signature>
     using transform_signature = typename transform_noexcept_signature<Signature>::type;
 
