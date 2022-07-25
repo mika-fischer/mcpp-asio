@@ -8,8 +8,9 @@ else ()
     set(is_toplevel FALSE)
 endif ()
 
-option(${PROJECT_NAME}_WITH_TESTS   "Build tests"     ${is_toplevel})
-option(${PROJECT_NAME}_WITH_INSTALL "Install project" ${is_toplevel})
+option(${PROJECT_NAME}_WITH_TESTS   "Build tests"         ${is_toplevel})
+option(${PROJECT_NAME}_WITH_INSTALL "Install project"     ${is_toplevel})
+option(${PROJECT_NAME}_WITH_BOOST   "Use asio from boost" OFF)
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE
@@ -17,6 +18,11 @@ target_include_directories(${PROJECT_NAME} INTERFACE
     $<INSTALL_INTERFACE:include>)
 target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_20)
 set_target_properties(${PROJECT_NAME} PROPERTIES EXPORT_NAME ${PROJECT_ALIAS})
+if (${PROJECT_NAME}_WITH_BOOST)
+    target_compile_definitions(${PROJECT_NAME} INTERFACE MCPP_ASIO_USE_BOOST=1)
+else ()
+    target_compile_definitions(${PROJECT_NAME} INTERFACE MCPP_ASIO_USE_BOOST=0)
+endif ()
 add_library(${PROJECT_ALIAS} ALIAS ${PROJECT_NAME})
 
 if (${PROJECT_NAME}_WITH_INSTALL)
