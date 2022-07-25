@@ -2,7 +2,6 @@
 // Distributed under the Boost Software License, Version 1.0.
 // (See accompanying file LICENSE.txt or copy at https://www.boost.org/LICENSE_1_0.txt)
 
-#include "asio/error.hpp"
 #if defined(__clang__) && !defined(ASIO_HAS_CO_AWAIT)
 #define ASIO_HAS_CO_AWAIT 1
 #endif
@@ -13,6 +12,7 @@
 
 #include <asio/awaitable.hpp>
 #include <asio/co_spawn.hpp>
+#include <asio/error.hpp>
 #include <asio/experimental/promise.hpp>
 #include <asio/io_context.hpp>
 #include <asio/steady_timer.hpp>
@@ -98,6 +98,16 @@ TEST_CASE("asio.co_spawn.can_be_canceled") {
 TEST_CASE("asio.transform_system_error.direct") {
     auto ioc = io_context();
     co_spawn(ioc, throw_system_error(), transform_system_error([&](std::error_code ec, int i) {
+                 REQUIRE(ec == std::errc::timed_out);
+                 REQUIRE(i == 0);
+             }));
+    ioc.run();
+}
+
+TEST_CASE("asio.transform_system_error.direct_move_only") {
+    auto ioc = io_context();
+    co_spawn(ioc, throw_system_error(),
+             transform_system_error([&, move_only = std::unique_ptr<int>()](std::error_code ec, int i) {
                  REQUIRE(ec == std::errc::timed_out);
                  REQUIRE(i == 0);
              }));

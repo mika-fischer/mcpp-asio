@@ -133,7 +133,7 @@ struct async_result<mcpp::asio::detail::wrapped_token<Impl, CT>, Ss...>
                 using wrapped_handler = mcpp::asio::detail::wrapped_handler<handler_impl>;
                 return std::move(init)(wrapped_handler(std::forward<H>(handler)), std::forward<Us>(args2)...);
             },
-            token.inner_token_, std::forward<Ts>(args)...);
+            std::move(token.inner_token_), std::forward<Ts>(args)...);
     }
 };
 
