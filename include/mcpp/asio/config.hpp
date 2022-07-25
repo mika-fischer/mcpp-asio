@@ -23,15 +23,9 @@ namespace mcpp::asio {
 using error_code = boost::system::error_code;
 using error_category = boost::system::error_category;
 using system_error = boost::system::system_error;
-inline auto system_category() noexcept -> const error_category & {
-    return boost::system::system_category();
-}
 #else
 using error_code = std::error_code;
 using error_category = std::error_category;
 using system_error = std::system_error;
-inline auto system_category() noexcept -> const error_category & {
-    return std::system_category();
-}
 #endif
 } // namespace mcpp::asio
