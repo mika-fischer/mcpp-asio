@@ -12,18 +12,15 @@
 #include <boost/system/system_error.hpp>
 #define MCPP_ASIO_NAMESPACE boost::asio
 #define MCPP_ASIO_CONT_HELPERS_NAMESPACE boost_asio_handler_cont_helpers
+#define MCPP_ASIO_ERROR_NAMESPACE boost::system
 #else
 #include <system_error>
 #define MCPP_ASIO_NAMESPACE asio
 #define MCPP_ASIO_CONT_HELPERS_NAMESPACE asio_handler_cont_helpers
+#define MCPP_ASIO_ERROR_NAMESPACE std
 #endif
 
 namespace mcpp::asio {
-#if MCPP_ASIO_USE_BOOST
-using error_code = boost::system::error_code;
-using system_error = boost::system::system_error;
-#else
-using error_code = std::error_code;
-using system_error = std::system_error;
-#endif
+using error_code = MCPP_ASIO_ERROR_NAMESPACE::error_code;
+using system_error = MCPP_ASIO_ERROR_NAMESPACE::system_error;
 } // namespace mcpp::asio
