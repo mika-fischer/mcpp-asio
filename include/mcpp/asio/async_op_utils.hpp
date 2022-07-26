@@ -21,6 +21,9 @@
 
 namespace mcpp::asio::detail {
 
+template <typename T, typename U>
+concept decays_to = std::same_as<std::decay_t<T>, U>;
+
 template <typename T>
 concept wrapped_handler_impl = requires(const T &impl) {
     typename T::inner_handler_type;
@@ -28,7 +31,8 @@ concept wrapped_handler_impl = requires(const T &impl) {
 };
 
 template <typename Handler>
-requires(!std::is_reference_v<Handler>) struct wrapped_handler_impl_base {
+struct wrapped_handler_impl_base {
+    static_assert(!std::is_reference_v<Handler>);
     using inner_handler_type = Handler;
     auto inner_handler() const & -> const inner_handler_type & { return inner_handler_; }
 
@@ -38,14 +42,11 @@ requires(!std::is_reference_v<Handler>) struct wrapped_handler_impl_base {
     }
 
   protected:
-    template <typename TokenImpl>
-    explicit wrapped_handler_impl_base(inner_handler_type &&inner_handler, TokenImpl && /* ignored */)
-        : inner_handler_(std::move(inner_handler)) {}
-    template <typename TokenImpl>
-    explicit wrapped_handler_impl_base(const inner_handler_type &inner_handler, TokenImpl && /* ignored */)
-        : inner_handler_(inner_handler) {}
-    explicit wrapped_handler_impl_base(inner_handler_type &&inner_handler) : inner_handler_(std::move(inner_handler)) {}
-    explicit wrapped_handler_impl_base(const inner_handler_type &inner_handler) : inner_handler_(inner_handler) {}
+    template <decays_to<inner_handler_type> H, typename TokenImpl>
+    explicit wrapped_handler_impl_base(H &&inner_handler, TokenImpl && /* ignored */)
+        : inner_handler_(std::forward<H>(inner_handler)) {}
+    template <decays_to<inner_handler_type> H>
+    explicit wrapped_handler_impl_base(H &&inner_handler) : inner_handler_(std::forward<H>(inner_handler)) {}
 
     auto inner_handler() & -> inner_handler_type & { return inner_handler_; }
     auto inner_handler() && -> inner_handler_type && { return std::move(inner_handler_); }
@@ -62,12 +63,9 @@ requires(!std::is_reference_v<Handler>) struct wrapped_handler_impl_base {
 template <wrapped_handler_impl Implementation>
 struct wrapped_handler : Implementation {
     using inner_handler_type = typename Implementation::inner_handler_type;
-    template <typename TokenImpl>
-    explicit wrapped_handler(inner_handler_type &&handler, TokenImpl &&token_impl)
-        : Implementation(std::move(handler), std::forward<TokenImpl>(token_impl)) {}
-    template <typename TokenImpl>
-    explicit wrapped_handler(const inner_handler_type &handler, TokenImpl &&token_impl)
-        : Implementation(handler, std::forward<TokenImpl>(token_impl)) {}
+    template <decays_to<inner_handler_type> H, typename TokenImpl>
+    explicit wrapped_handler(H &&handler, TokenImpl &&token_impl)
+        : Implementation(std::forward<H>(handler), std::forward<TokenImpl>(token_impl)) {}
 };
 
 template <wrapped_handler_impl Implementation>
@@ -105,16 +103,12 @@ template <wrapped_token_impl Impl, typename CompletionToken>
 struct wrapped_token {
     static_assert(!std::is_reference_v<CompletionToken>);
 
-    using impl_type = Impl;
     [[no_unique_address]] CompletionToken inner_token_;
     [[no_unique_address]] Impl implementation_;
 
-    template <typename... Args>
-    explicit wrapped_token(CompletionToken &&token, Args &&...args)
-        : inner_token_(std::move(token)), implementation_(std::forward<Args>(args)...) {}
-    template <typename... Args>
-    explicit wrapped_token(const CompletionToken &token, Args &&...args)
-        : inner_token_(token), implementation_(std::forward<Args>(args)...) {}
+    template <decays_to<CompletionToken> T, typename... Args>
+    explicit wrapped_token(T &&token, Args &&...args)
+        : inner_token_(std::forward<T>(token)), implementation_(std::forward<Args>(args)...) {}
 
     template <typename Executor>
     struct executor_with_default : Executor {
