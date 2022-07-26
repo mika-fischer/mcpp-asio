@@ -30,12 +30,9 @@ struct transform_noexcept_impl {
     template <typename Signature>
     using transform_signature = typename transform_noexcept_signature<Signature>::type;
 
-    template <typename Handler>
-    struct handler_impl : wrapped_handler_impl_base<Handler> {
-        using wrapped_handler_impl_base<Handler>::wrapped_handler_impl_base;
-
+    struct handler_impl {
         template <typename... Args>
-        void operator()(std::exception_ptr error, Args &&...args) && {
+        void operator()(auto &handler, std::exception_ptr error, Args &&...args) && {
             if (error) {
                 try {
                     std::rethrow_exception(error);
@@ -43,12 +40,12 @@ struct transform_noexcept_impl {
                     std::terminate();
                 }
             }
-            return std::move(*this).complete(std::forward<Args>(args)...);
+            return std::move(handler)(std::forward<Args>(args)...);
         }
 
         template <typename... Args>
-        auto operator()(Args &&...args) && {
-            return std::move(*this).complete(std::forward<Args>(args)...);
+        auto operator()(auto &handler, Args &&...args) && {
+            return std::move(handler)(std::forward<Args>(args)...);
         }
     };
 };

@@ -32,27 +32,24 @@ struct transform_system_error_impl {
     template <typename Signature>
     using transform_signature = typename transform_system_error_signature<Signature>::type;
 
-    template <typename Handler>
-    struct handler_impl : wrapped_handler_impl_base<Handler> {
-        using wrapped_handler_impl_base<Handler>::wrapped_handler_impl_base;
-
+    struct handler_impl {
         template <typename... Args>
-        void operator()(std::exception_ptr error, Args &&...args) && {
+        void operator()(auto &&handler, std::exception_ptr error, Args &&...args) && {
             if (!error) {
-                return std::move(*this).complete(error_code{}, std::forward<Args>(args)...);
+                return std::move(handler)(error_code{}, std::forward<Args>(args)...);
             }
             try {
                 std::rethrow_exception(error);
             } catch (system_error &e) {
-                return std::move(*this).complete(e.code(), std::forward<Args>(args)...);
+                return std::move(handler)(e.code(), std::forward<Args>(args)...);
             } catch (...) {
                 std::terminate();
             }
         }
 
         template <typename... Args>
-        auto operator()(Args &&...args) && {
-            return std::move(*this).complete(std::forward<Args>(args)...);
+        auto operator()(auto &handler, Args &&...args) && {
+            return std::move(handler)(std::forward<Args>(args)...);
         }
     };
 };

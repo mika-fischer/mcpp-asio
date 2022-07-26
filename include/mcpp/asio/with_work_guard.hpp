@@ -27,14 +27,10 @@ struct with_work_guard_impl {
 
     explicit with_work_guard_impl(work_guard<Executor> &&...work_guards) : work_guards_(std::move(work_guards)...) {}
 
-    template <typename Handler>
-    struct handler_impl : wrapped_handler_impl_base<Handler> {
+    struct handler_impl {
         std::tuple<work_guard<Executor>...> work_guards_;
 
-        template <typename H>
-        handler_impl(H &&handler, with_work_guard_impl &&token_impl)
-            : wrapped_handler_impl_base<Handler>(std::forward<H>(handler)),
-              work_guards_(std::move(token_impl.work_guards_)) {}
+        explicit handler_impl(with_work_guard_impl &&token_impl) : work_guards_(std::move(token_impl.work_guards_)) {}
     };
 };
 
