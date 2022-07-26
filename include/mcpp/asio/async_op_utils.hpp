@@ -73,11 +73,6 @@ inline auto asio_handler_is_continuation(wrapped_handler<Implementation> *this_h
     return MCPP_ASIO_CONT_HELPERS_NAMESPACE::is_continuation(this_handler->inner_handler());
 }
 
-template <typename Handler>
-struct transparent_handler : wrapped_handler_impl_base<Handler> {
-    using wrapped_handler_impl_base<Handler>::wrapped_handler_impl_base;
-};
-
 struct invocable_archetype {
     template <typename... Args>
     void operator()(Args &&...args) {}
