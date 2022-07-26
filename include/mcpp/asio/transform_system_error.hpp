@@ -34,7 +34,7 @@ struct transform_system_error_impl {
 
     struct handler_impl {
         template <typename... Args>
-        void operator()(auto &&handler, std::exception_ptr error, Args &&...args) && {
+        void operator()(auto &handler, std::exception_ptr error, Args &&...args) && {
             if (!error) {
                 return std::move(handler)(error_code{}, std::forward<Args>(args)...);
             }
