@@ -35,25 +35,24 @@ struct wrapped_handler {
     [[no_unique_address]] Implementation implementation_;
 
     template <decays_to<Handler> H, typename TokenImpl>
-    requires(std::is_default_constructible_v<Implementation> &&
-             !std::is_constructible_v<Implementation, TokenImpl>) explicit wrapped_handler(H &&handler,
-                                                                                           TokenImpl &&token_impl)
+        requires(std::is_default_constructible_v<Implementation> && !std::is_constructible_v<Implementation, TokenImpl>)
+    explicit wrapped_handler(H &&handler, TokenImpl &&token_impl)
         : inner_handler_(std::forward<H>(handler)), implementation_() {}
 
     template <decays_to<Handler> H, typename TokenImpl>
-    requires(std::is_constructible_v<Implementation, TokenImpl>) explicit wrapped_handler(H &&handler,
-                                                                                          TokenImpl &&token_impl)
+        requires(std::is_constructible_v<Implementation, TokenImpl>)
+    explicit wrapped_handler(H &&handler, TokenImpl &&token_impl)
         : inner_handler_(std::forward<H>(handler)), implementation_(std::forward<TokenImpl>(token_impl)) {}
 
     template <typename... Args>
-    requires(std::is_invocable_v<Implementation &&, Handler &&, Args &&...>) auto operator()(Args &&...args) && {
+        requires(std::is_invocable_v<Implementation &&, Handler &&, Args &&...>)
+    auto operator()(Args &&...args) && {
         return std::move(implementation_)(std::move(inner_handler_), std::forward<Args>(args)...);
     }
 
     template <typename... Args>
-    requires(!std::is_invocable_v<Implementation &&, Handler &&, Args &&...>) auto operator()(Args &&...args) && {
-        return std::move(inner_handler_)(std::forward<Args>(args)...);
-    }
+        requires(!std::is_invocable_v<Implementation &&, Handler &&, Args &&...>)
+    auto operator()(Args &&...args) && { return std::move(inner_handler_)(std::forward<Args>(args)...); }
 };
 
 template <typename Handler, wrapped_handler_impl Implementation>
