@@ -20,10 +20,6 @@ struct transform_system_error_signature;
     template <typename R, typename... Args>                                                                            \
     struct transform_system_error_signature<R(std::exception_ptr, Args...) ref_qualifier noexcept_qualifier> {         \
         using type = R(std::error_code, Args...) ref_qualifier noexcept_qualifier;                                     \
-    };                                                                                                                 \
-    template <typename R, typename... Args>                                                                            \
-    struct transform_system_error_signature<R(Args...) ref_qualifier noexcept_qualifier> {                             \
-        using type = R(Args...) ref_qualifier noexcept_qualifier;                                                      \
     };
 MCPP_ASIO_FOREACH_SIGNATURE_QUALIFIER(X)
 #undef X
@@ -45,11 +41,6 @@ struct transform_system_error_impl {
             } catch (...) {
                 std::terminate();
             }
-        }
-
-        template <typename... Args>
-        auto operator()(auto &handler, Args &&...args) && {
-            return std::move(handler)(std::forward<Args>(args)...);
         }
     };
 };
