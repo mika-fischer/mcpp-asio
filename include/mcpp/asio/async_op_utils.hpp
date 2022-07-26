@@ -88,12 +88,6 @@ concept wrapped_token_impl = requires(const T &impl) {
     wrapped_handler_impl<typename T::template handler_impl<invocable_archetype>>;
 };
 
-struct wrapped_token_impl_base {
-    template <typename Handler>
-    using handler_impl = transparent_handler<Handler>;
-};
-static_assert(wrapped_token_impl<wrapped_token_impl_base>);
-
 template <typename Signature, typename Impl>
 struct transform_signature_impl {
     using type = Signature;
