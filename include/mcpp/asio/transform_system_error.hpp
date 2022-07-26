@@ -60,8 +60,8 @@ struct transform_system_error_impl {
 } // namespace mcpp::asio::detail
 
 namespace mcpp::asio {
-template <typename CompletionToken>
-inline auto transform_system_error(CompletionToken &&token) {
-    return detail::make_wrapped_token<detail::transform_system_error_impl>(std::forward<CompletionToken>(token));
+template <typename CT>
+inline auto transform_system_error(CT &&token) {
+    return detail::make_wrapped_token<detail::transform_system_error_impl>(std::forward<CT>(token));
 }
 } // namespace mcpp::asio
