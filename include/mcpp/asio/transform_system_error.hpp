@@ -62,7 +62,6 @@ struct transform_system_error_impl {
 namespace mcpp::asio {
 template <typename CompletionToken>
 inline auto transform_system_error(CompletionToken &&token) {
-    return detail::wrapped_token<detail::transform_system_error_impl, std::decay_t<CompletionToken>>(
-        std::forward<CompletionToken>(token));
+    return detail::make_wrapped_token<detail::transform_system_error_impl>(std::forward<CompletionToken>(token));
 }
 } // namespace mcpp::asio

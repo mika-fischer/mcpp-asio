@@ -58,7 +58,6 @@ struct transform_noexcept_impl {
 namespace mcpp::asio {
 template <typename CompletionToken>
 inline auto transform_noexcept(CompletionToken &&token) {
-    return detail::wrapped_token<detail::transform_noexcept_impl, std::decay_t<CompletionToken>>(
-        std::forward<CompletionToken>(token));
+    return detail::make_wrapped_token<detail::transform_noexcept_impl>(std::forward<CompletionToken>(token));
 }
 } // namespace mcpp::asio

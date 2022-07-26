@@ -44,7 +44,7 @@ struct with_work_guard_impl {
 namespace mcpp::asio {
 template <typename CompletionToken, typename... Executor>
 inline auto with_work_guard(CompletionToken &&token, const Executor &...ex) {
-    return detail::wrapped_token<detail::with_work_guard_impl<Executor...>, std::decay_t<CompletionToken>>(
+    return detail::make_wrapped_token<detail::with_work_guard_impl<Executor...>>(
         std::forward<CompletionToken>(token), ::MCPP_ASIO_NAMESPACE::executor_work_guard<Executor>(ex)...);
 }
 } // namespace mcpp::asio
