@@ -27,9 +27,6 @@ struct with_work_guard_impl {
 
     explicit with_work_guard_impl(work_guard<Executor> &&...work_guards) : work_guards_(std::move(work_guards)...) {}
 
-    template <typename Signature>
-    using transform_signature = Signature;
-
     template <typename Handler>
     struct handler_impl : wrapped_handler_impl_base<Handler> {
         std::tuple<work_guard<Executor>...> work_guards_;

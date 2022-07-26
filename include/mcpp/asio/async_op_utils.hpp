@@ -86,18 +86,31 @@ struct invocable_archetype {
 template <typename T>
 concept wrapped_token_impl = requires(const T &impl) {
     wrapped_handler_impl<typename T::template handler_impl<invocable_archetype>>;
-    typename T::template transform_signature<void()>;
-    // TODO: ICE on GCC 12. Need to find a better way to check this...
-    // {[]<typename Signature>(typename T::template transform_signature<Signature> &) {}};
 };
 
 struct wrapped_token_impl_base {
     template <typename Handler>
     using handler_impl = transparent_handler<Handler>;
-    template <typename Signature>
-    using transform_signature = Signature;
 };
 static_assert(wrapped_token_impl<wrapped_token_impl_base>);
+
+template <typename Signature, typename Impl>
+struct transform_signature_impl {
+    using type = Signature;
+};
+
+template <typename T, typename Signature>
+concept can_transform_signature = requires(T) {
+    typename T::template transform_signature<Signature>;
+};
+
+template <typename Signature, can_transform_signature<Signature> Impl>
+struct transform_signature_impl<Signature, Impl> {
+    using type = typename Impl::template transform_signature<Signature>;
+};
+
+template <typename Signature, typename Impl>
+using transform_signature_t = typename transform_signature_impl<Signature, Impl>::type;
 
 template <wrapped_token_impl Impl, typename CompletionToken>
 struct wrapped_token {
@@ -105,6 +118,9 @@ struct wrapped_token {
 
     [[no_unique_address]] CompletionToken inner_token_;
     [[no_unique_address]] Impl implementation_;
+
+    template <typename Signature>
+    using transform_signature = transform_signature_impl<Signature, Impl>;
 
     template <decays_to<CompletionToken> T, typename... Args>
     explicit wrapped_token(T &&token, Args &&...args)
@@ -145,8 +161,8 @@ struct associator<Associator, mcpp::asio::detail::wrapped_handler<Implementation
 
 template <typename Impl, typename CT, typename... Ss>
 struct async_result<mcpp::asio::detail::wrapped_token<Impl, CT>, Ss...>
-    : async_result<CT, typename Impl::template transform_signature<Ss>...> {
-    using base = async_result<CT, typename Impl::template transform_signature<Ss>...>;
+    : async_result<CT, mcpp::asio::detail::transform_signature_t<Ss, Impl>...> {
+    using base = async_result<CT, mcpp::asio::detail::transform_signature_t<Ss, Impl>...>;
     template <typename I, typename... Ts>
     static auto initiate(I &&init, auto &&token, Ts &&...args) {
         return base::initiate(
