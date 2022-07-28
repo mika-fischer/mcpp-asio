@@ -67,7 +67,7 @@ struct invocable_archetype {
 
 template <typename T>
 concept wrapped_token_impl = requires(const T &impl) {
-    wrapped_handler_impl<typename T::handler_impl>;
+    requires(wrapped_handler_impl<typename T::handler_impl>);
 };
 
 template <typename Signature, typename Impl>
