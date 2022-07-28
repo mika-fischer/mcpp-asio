@@ -13,6 +13,7 @@ include(${doctest_SOURCE_DIR}/scripts/cmake/doctest.cmake)
 add_executable(test-asio
     asio.cpp
     async_op_utils.cpp
+    awaitable_utils.cpp
     transform_noexcept.cpp
     transform_system_error.cpp
     with_work_guard.cpp
