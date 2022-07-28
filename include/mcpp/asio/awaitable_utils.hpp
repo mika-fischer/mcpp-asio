@@ -126,7 +126,7 @@ using awaitable = ::MCPP_ASIO_NAMESPACE::awaitable<T, E>;
 // First exception or result wins.
 // All other awaitables are canceled and their results/errors ignored
 template <typename E, typename... Ts>
-auto race(detail::awaitable<Ts, E> &&...awaitables)
+auto race(detail::awaitable<Ts, E>... awaitables)
     -> detail::awaitable<std::variant<detail::to_variant_type_t<Ts>...>, E> {
     using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group, ::MCPP_ASIO_NAMESPACE::experimental::wait_for_one;
@@ -146,8 +146,7 @@ auto race(detail::awaitable<Ts, E> &&...awaitables)
 // All other awaitables are canceled and their results/errors ignored.
 // Otherwise all results are returned as a tuple.
 template <typename E, typename... Ts>
-auto all(detail::awaitable<Ts, E> &&...awaitables)
-    -> detail::awaitable<std::tuple<detail::to_variant_type_t<Ts>...>, E> {
+auto all(detail::awaitable<Ts, E>... awaitables) -> detail::awaitable<std::tuple<detail::to_variant_type_t<Ts>...>, E> {
     using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group,
         ::MCPP_ASIO_NAMESPACE::experimental::wait_for_one_error;
@@ -171,7 +170,7 @@ auto all(detail::awaitable<Ts, E> &&...awaitables)
 
 // Waits until all operations are complete, nothing is ever cancelled, except if the returned awaitable is canceled.
 template <typename E, typename... Ts>
-auto all_settled(detail::awaitable<Ts, E> &&...awaitables)
+auto all_settled(detail::awaitable<Ts, E>... awaitables)
     -> detail::awaitable<std::tuple<std::variant<detail::to_variant_type_t<Ts>, std::exception_ptr>...>, E> {
     using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group, ::MCPP_ASIO_NAMESPACE::experimental::wait_for_all;
