@@ -138,7 +138,7 @@ auto race(detail::awaitable<Ts, E> &&...awaitables)
     auto awaitable_idx = std::get<0>(results)[0];
     co_return detail::invoke_with_idx<sizeof...(Ts)>(awaitable_idx, [&results](auto I) {
         return std::variant<detail::to_variant_type_t<Ts>...>(std::in_place_index<I>,
-                                                              traits::get_group_result_or_throw<I>(results));
+                                                              traits::template get_group_result_or_throw<I>(results));
     });
 }
 
@@ -157,13 +157,14 @@ auto all(detail::awaitable<Ts, E> &&...awaitables)
     auto group = make_parallel_group(co_spawn(co_await this_coro::executor, std::move(awaitables), deferred)...);
     auto results = co_await group.async_wait(wait_for_one_error(), use_awaitable);
     for (auto awaitable_idx : std::get<0>(results)) {
-        if (auto error = detail::invoke_with_idx<sizeof...(Ts)>(
-                awaitable_idx, [&results](auto I) { return std::get<traits::group_result_idx_for_v<I>>(results); })) {
+        if (auto error = detail::invoke_with_idx<sizeof...(Ts)>(awaitable_idx, [&results](auto I) {
+                return std::get<traits::template group_result_idx_for_v<I>>(results);
+            })) {
             std::rethrow_exception(error);
         }
     }
     co_return [&results]<size_t... Is>(std::index_sequence<Is...>) {
-        return std::tuple(traits::get_group_result<Is>(results)...);
+        return std::tuple(traits::template get_group_result<Is>(results)...);
     }
     (std::index_sequence_for<Ts...>{});
 }
@@ -180,7 +181,7 @@ auto all_settled(detail::awaitable<Ts, E> &&...awaitables)
     auto group = make_parallel_group(co_spawn(co_await this_coro::executor, std::move(awaitables), deferred)...);
     auto results = co_await group.async_wait(wait_for_all(), use_awaitable);
     co_return [&results]<size_t... Is>(std::index_sequence<Is...> is) {
-        return std::tuple(traits::get_group_result_or_error<Is>(results)...);
+        return std::tuple(traits::template get_group_result_or_error<Is>(results)...);
     }
     (std::index_sequence_for<Ts...>{});
 }
