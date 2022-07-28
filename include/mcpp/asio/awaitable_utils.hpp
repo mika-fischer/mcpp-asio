@@ -11,13 +11,13 @@
 #if MCPP_ASIO_USE_BOOST
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
-#include <boost/asio/deferred.hpp>
+#include <boost/asio/experimental/deferred.hpp>
 #include <boost/asio/experimental/parallel_group.hpp>
 #include <boost/asio/use_awaitable.hpp>
 #else
 #include <asio/awaitable.hpp>
 #include <asio/co_spawn.hpp>
-#include <asio/deferred.hpp>
+#include <asio/experimental/deferred.hpp>
 #include <asio/experimental/parallel_group.hpp>
 #include <asio/use_awaitable.hpp>
 #endif
@@ -128,7 +128,7 @@ using awaitable = ::MCPP_ASIO_NAMESPACE::awaitable<T, E>;
 template <typename E, typename... Ts>
 auto race(detail::awaitable<Ts, E> &&...awaitables)
     -> detail::awaitable<std::variant<detail::to_variant_type_t<Ts>...>, E> {
-    using ::MCPP_ASIO_NAMESPACE::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
+    using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group, ::MCPP_ASIO_NAMESPACE::experimental::wait_for_one;
     namespace this_coro = ::MCPP_ASIO_NAMESPACE::this_coro;
     using traits = detail::awaitable_traits<Ts...>;
@@ -148,7 +148,7 @@ auto race(detail::awaitable<Ts, E> &&...awaitables)
 template <typename E, typename... Ts>
 auto all(detail::awaitable<Ts, E> &&...awaitables)
     -> detail::awaitable<std::tuple<detail::to_variant_type_t<Ts>...>, E> {
-    using ::MCPP_ASIO_NAMESPACE::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
+    using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group,
         ::MCPP_ASIO_NAMESPACE::experimental::wait_for_one_error;
     namespace this_coro = ::MCPP_ASIO_NAMESPACE::this_coro;
@@ -173,7 +173,7 @@ auto all(detail::awaitable<Ts, E> &&...awaitables)
 template <typename E, typename... Ts>
 auto all_settled(detail::awaitable<Ts, E> &&...awaitables)
     -> detail::awaitable<std::tuple<std::variant<detail::to_variant_type_t<Ts>, std::exception_ptr>...>, E> {
-    using ::MCPP_ASIO_NAMESPACE::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
+    using ::MCPP_ASIO_NAMESPACE::experimental::deferred, ::MCPP_ASIO_NAMESPACE::use_awaitable,
         ::MCPP_ASIO_NAMESPACE::experimental::make_parallel_group, ::MCPP_ASIO_NAMESPACE::experimental::wait_for_all;
     namespace this_coro = ::MCPP_ASIO_NAMESPACE::this_coro;
     using traits = detail::awaitable_traits<Ts...>;
