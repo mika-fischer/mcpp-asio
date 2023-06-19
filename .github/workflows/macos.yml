@@ -19,6 +19,9 @@ jobs:
           # https://github.com/actions/virtual-environments/blob/main/images/macos/macos-12-Readme.md#xcode
           - "13.3.1"
           - "13.4.1"
+          - "14.0.1"
+          - "14.1"
+          - "14.2"
 
     steps:
       - name: Checkout
