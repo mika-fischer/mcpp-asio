@@ -19,5 +19,5 @@ add_executable(test-asio
     with_work_guard.cpp
 )
 target_link_libraries(test-asio PRIVATE mcpp::asio doctest_with_main)
-target_include_directories(test-asio PUBLIC ${asio_SOURCE_DIR}/asio/include)
+target_include_directories(test-asio SYSTEM PUBLIC ${asio_SOURCE_DIR}/asio/include)
 doctest_discover_tests(test-asio)
