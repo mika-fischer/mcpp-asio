@@ -60,11 +60,6 @@ inline auto asio_handler_is_continuation(wrapped_handler<Handler, Implementation
     return MCPP_ASIO_CONT_HELPERS_NAMESPACE::is_continuation(this_handler->inner_handler());
 }
 
-struct invocable_archetype {
-    template <typename... Args>
-    void operator()(Args &&...args) {}
-};
-
 template <typename T>
 concept wrapped_token_impl = requires(const T &impl) {
     requires(wrapped_handler_impl<typename T::handler_impl>);
